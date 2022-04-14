@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		87AA856C280795E9004FABC5 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87AA856B280795E9004FABC5 /* main.swift */; };
+		87AA8573280795FD004FABC5 /* Poker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87AA8572280795FD004FABC5 /* Poker.swift */; };
+		87C09D262807E90100BAA1E6 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 87C09D252807E90100BAA1E6 /* ArgumentParser */; };
+		87C09D272807F95600BAA1E6 /* PokerCli.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87AA856B280795E9004FABC5 /* PokerCli.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +26,8 @@
 
 /* Begin PBXFileReference section */
 		87AA8568280795E9004FABC5 /* PokerCli */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PokerCli; sourceTree = BUILT_PRODUCTS_DIR; };
-		87AA856B280795E9004FABC5 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		87AA856B280795E9004FABC5 /* PokerCli.swift */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.swift; path = PokerCli.swift; sourceTree = "<group>"; tabWidth = 2; };
+		87AA8572280795FD004FABC5 /* Poker.swift */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.swift; path = Poker.swift; sourceTree = "<group>"; tabWidth = 2; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +35,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				87C09D262807E90100BAA1E6 /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,7 +61,8 @@
 		87AA856A280795E9004FABC5 /* PokerCli */ = {
 			isa = PBXGroup;
 			children = (
-				87AA856B280795E9004FABC5 /* main.swift */,
+				87AA8572280795FD004FABC5 /* Poker.swift */,
+				87AA856B280795E9004FABC5 /* PokerCli.swift */,
 			);
 			path = PokerCli;
 			sourceTree = "<group>";
@@ -78,6 +83,9 @@
 			dependencies = (
 			);
 			name = PokerCli;
+			packageProductDependencies = (
+				87C09D252807E90100BAA1E6 /* ArgumentParser */,
+			);
 			productName = PokerCli;
 			productReference = 87AA8568280795E9004FABC5 /* PokerCli */;
 			productType = "com.apple.product-type.tool";
@@ -106,6 +114,9 @@
 				Base,
 			);
 			mainGroup = 87AA855F280795E9004FABC5;
+			packageReferences = (
+				87C09D242807E90100BAA1E6 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
+			);
 			productRefGroup = 87AA8569280795E9004FABC5 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -120,7 +131,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				87AA856C280795E9004FABC5 /* main.swift in Sources */,
+				87C09D272807F95600BAA1E6 /* PokerCli.swift in Sources */,
+				87AA8573280795FD004FABC5 /* Poker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,6 +296,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		87C09D242807E90100BAA1E6 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		87C09D252807E90100BAA1E6 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 87C09D242807E90100BAA1E6 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 87AA8560280795E9004FABC5 /* Project object */;
 }
