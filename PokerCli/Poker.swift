@@ -148,15 +148,15 @@ class Poker {
     return nil
   }
   
-  private func getUInt16(p: CBPeripheral, c: CBCharacteristic) -> UInt16 {
-    p.readValue(for: c)
-    sleep(1)
-    //debugPrint(c.value!.map { "\($0)" }.joined(separator: " "))
-    let ret = c.value!.withUnsafeBytes {
-      [UInt16](UnsafeBufferPointer(start: $0, count: c.value!.count))
-    }.first!
-    logger.info("got \(ret)")
-    return ret
+  func getLiquidLevel() -> UInt16? {
+    guard delegate.connected else {return nil}
+    let peripheral = delegate.peripheral!
+    if let char = delegate.charsDiscovered[EmberCharUuids[EmberChars.LiquidLevel]!] {
+      logger.info("getting liquid level")
+      return getUInt8(p: peripheral, c: char)
+    }
+    logger.info("get liquid level failed, delegate has not discovered characteristic")
+    return nil
   }
   
   func pair() -> Bool {
@@ -178,5 +178,24 @@ class Poker {
   }
   func isConnected() -> Bool {
     return delegate.connected
+  }
+  
+  private func getUInt16(p: CBPeripheral, c: CBCharacteristic) -> UInt16 {
+    p.readValue(for: c)
+    sleep(1)
+    //debugPrint(c.value!.map { "\($0)" }.joined(separator: " "))
+    let ret = c.value!.withUnsafeBytes {
+      [UInt16](UnsafeBufferPointer(start: $0, count: c.value!.count))
+    }.first!
+    logger.info("got \(ret)")
+    return ret
+  }
+  
+  private func getUInt8(p: CBPeripheral, c: CBCharacteristic) -> UInt16 {
+    p.readValue(for: c)
+    sleep(1)
+    let ret = UInt16(c.value!.first!)
+    logger.info("got \(ret)")
+    return ret
   }
 }

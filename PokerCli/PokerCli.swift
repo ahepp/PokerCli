@@ -48,12 +48,12 @@ extension Poke {
   struct Get: ParsableCommand {
     static var configuration = CommandConfiguration(abstract: "Get data from the Ember device.")
     @OptionGroup var opts: Options
-    @Argument(help: "Datum to operate on. \"target\" or \"current\".")
+    @Argument(help: "Datum to operate on. \"target\", \"current\", or \"level\".")
     var datum: String
     
     func validate() throws {
-      if (datum != "target") && (datum != "current") {
-        throw ValidationError("datum must be \"target\" or \"current\"")
+      if (datum != "target") && (datum != "current") && (datum != "level") {
+        throw ValidationError("datum may be \"target\", \"current\", or \"level\"")
       }
     }
     
@@ -61,13 +61,21 @@ extension Poke {
       let uuid = UUID(uuidString: opts.uuid)!
       let poker = getPoker(uuid: uuid)
       var ret: UInt16?
-      if datum == "target" {
-        ret = poker.getTargetTemperature()
-      } else {
-        ret = poker.getCurrentTemperature()
+      switch(datum) {
+        case "current":
+          ret = poker.getCurrentTemperature()
+        case "level":
+          ret = poker.getLiquidLevel()
+        default:
+          ret = poker.getTargetTemperature()
       }
       if let ret: UInt16 = ret {
-        print(ret)
+        // quick hack to normalize level (from /30 to /~100)
+        if datum == "level" {
+          print(ret * 33 / 10)
+        } else {
+          print(ret)
+        }
         throw ExitCode.success
       }
       throw ExitCode.failure
