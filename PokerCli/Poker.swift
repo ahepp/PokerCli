@@ -2,20 +2,13 @@ import CoreBluetooth
 import OSLog
 
 class EmberCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
-  private var peripheralId: UUID;
-  private var emberServiceId = CBUUID(string: "FC543622-236C-4C94-8FA9-944A3E5353FA")
+  private final var peripheralId: UUID;
+  private final var emberServiceId = CBUUID(string: "FC543622-236C-4C94-8FA9-944A3E5353FA")
+  public private(set) var charsDiscovered: [CBUUID: CBCharacteristic] = [:]
+  
   private var logger: Logger!
+  public var peripheral: CBPeripheral?
   public var connected = false
-  public var mug: CBPeripheral?
-  private var targetTemperatureCharacteristicId = CBUUID(string: "FC540003-236C-4C94-8FA9-944A3E5353FA")
-  public var targetTemperatureCharacteristic: CBCharacteristic?
-  private var currentTemperatureCharacteristicId = CBUUID(string: "FC540002-236C-4C94-8FA9-944A3E5353FA")
-  public var currentTemperatureCharacteristic: CBCharacteristic?
-  private var pairingReadCharacteristicId = CBUUID(string: "FC54000E-236C-4C94-8FA9-944A3E5353FA")
-  public var pairingReadCharacteristic: CBCharacteristic?
-  private var pairingWriteCharacteristicId = CBUUID(string: "FC54000F-236C-4C94-8FA9-944A3E5353FA")
-  public var pairingWriteCharacteristic: CBCharacteristic?
-                                              
   
   init(peripheralId: UUID, logger: Logger) {
     self.peripheralId = peripheralId
@@ -40,7 +33,7 @@ class EmberCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     central.stopScan()
     logger.info("stopped scan")
     central.connect(peripheral, options: nil)
-    mug = peripheral
+    self.peripheral = peripheral
   }
   
   func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -54,32 +47,55 @@ class EmberCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDeleg
     if let ss = peripheral.services {
       for s in ss {
         logger.info("discovered service \(s.uuid.uuidString)")
-        peripheral.discoverCharacteristics(nil, for: s)
+        if(s.uuid == emberServiceId) {
+          peripheral.discoverCharacteristics(nil, for: s)
+        }
       }
     }
   }
-
+  
   func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
     if let cs = service.characteristics {
       for c in cs {
-        switch c.uuid {
-          case targetTemperatureCharacteristicId:
-            targetTemperatureCharacteristic = c
-          case currentTemperatureCharacteristicId:
-            currentTemperatureCharacteristic = c
-          case pairingReadCharacteristicId:
-            pairingReadCharacteristic = c
-          case pairingWriteCharacteristicId:
-            pairingWriteCharacteristic = c
-          default:
-            logger.info("discovered characteristic")
-        }
+        logger.info("discovered characteristic \(c.uuid)")
+        charsDiscovered[c.uuid] = c
       }
     }
   }
 }
 
-public struct Poker {
+class Poker {
+  enum EmberChars: Int { case
+    DeviceName,
+    DrinkTemperature,
+    TargetTemperature,
+    TemperatureUnit,
+    LiquidLevel,
+    BatteryLevel,
+    LiquidState,
+    MugId,
+    Dsk,
+    Udsk,
+    PushEvent,
+    Statistics,
+    Rgb
+  }
+  private final var EmberCharUuids: [EmberChars: CBUUID] =
+  [
+    .DeviceName:        CBUUID(string: "FC540001-236C-4C94-8FA9-944A3E5353FA"),
+    .DrinkTemperature:  CBUUID(string: "FC540002-236C-4C94-8FA9-944A3E5353FA"),
+    .TargetTemperature: CBUUID(string: "FC540003-236C-4C94-8FA9-944A3E5353FA"),
+    .TemperatureUnit:   CBUUID(string: "FC540004-236C-4C94-8FA9-944A3E5353FA"),
+    .LiquidLevel:       CBUUID(string: "FC540005-236C-4C94-8FA9-944A3E5353FA"),
+    .BatteryLevel:      CBUUID(string: "FC540007-236C-4C94-8FA9-944A3E5353FA"),
+    .LiquidState:       CBUUID(string: "FC540008-236C-4C94-8FA9-944A3E5353FA"),
+    .MugId:             CBUUID(string: "FC54000D-236C-4C94-8FA9-944A3E5353FA"),
+    .Dsk:               CBUUID(string: "FC54000E-236C-4C94-8FA9-944A3E5353FA"),
+    .Udsk:              CBUUID(string: "FC54000F-236C-4C94-8FA9-944A3E5353FA"),
+    .PushEvent:         CBUUID(string: "FC540012-236C-4C94-8FA9-944A3E5353FA"),
+    .Statistics:        CBUUID(string: "FC540013-236C-4C94-8FA9-944A3E5353FA"),
+    .Rgb:               CBUUID(string: "FC540014-236C-4C94-8FA9-944A3E5353FA")
+  ]
   private var queue: DispatchQueue!
   private var logger: Logger!
   private var delegate: EmberCentralManager!
@@ -94,68 +110,71 @@ public struct Poker {
   
   func setTargetTemperature(targetTemperature: UInt16) -> Bool {
     guard delegate.connected else {return false}
+    let peripheral = delegate.peripheral!
+    let char = delegate.charsDiscovered[EmberCharUuids[EmberChars.TargetTemperature]!]
+    if char == nil {
+      logger.info("set temperature failed, delegate has not discovered target temperature characteristic")
+      return false
+    }
+    
     logger.info("setting target temperature")
     var tmp = targetTemperature
     let data = Data(bytes: &tmp, count: MemoryLayout<UInt16>.size)
-    if let mug = delegate.mug, let c = delegate.targetTemperatureCharacteristic {
-      mug.writeValue(data, for: c, type: .withResponse)
-      sleep(1)
-      logger.info("set \(UInt16(data[0]) + UInt16(data[1]) * 256)")
-      return true
-    } else {
-      logger.info("failed to set target temperature")
-      return false
-    }
+    peripheral.writeValue(data, for: char!, type: .withResponse)
+    sleep(1)
+    logger.info("set \(UInt16(data[0]) + UInt16(data[1]) * 256)")
+    return true
   }
   
   func getTargetTemperature() -> UInt16? {
     guard delegate.connected else {return nil}
-    if let mug = delegate.mug, let c = delegate.targetTemperatureCharacteristic {
+    let peripheral = delegate.peripheral!
+    if let char = delegate.charsDiscovered[EmberCharUuids[EmberChars.TargetTemperature]!] {
       logger.info("getting target temperature")
-      return getUInt16(p: mug, c: c)
-    } else {
-      logger.info("failed to get target temperature")
-      return nil
+      return getUInt16(p: peripheral, c: char)
     }
+    logger.info("get target temperature failed, delegate has not discovered target temperature characteristic")
+    return nil
   }
   
   func getCurrentTemperature() -> UInt16? {
     guard delegate.connected else {return nil}
-    if let mug = delegate.mug, let c = delegate.currentTemperatureCharacteristic {
-      logger.info("getting current temperature")
-      return getUInt16(p: mug, c: c)
-    } else {
-      logger.info("failed to get current temperature")
-      return nil
+    let peripheral = delegate.peripheral!
+    if let char = delegate.charsDiscovered[EmberCharUuids[EmberChars.DrinkTemperature]!] {
+      logger.info("getting drink temperature")
+      return getUInt16(p: peripheral, c: char)
     }
+    logger.info("get drink temperature failed, delegate has not discovered drink temperature characteristic")
+    return nil
   }
+  
   private func getUInt16(p: CBPeripheral, c: CBCharacteristic) -> UInt16 {
-      p.readValue(for: c)
-      sleep(1)
-      //debugPrint(c.value!.map { "\($0)" }.joined(separator: " "))
-      let ret = c.value!.withUnsafeBytes {
-        [UInt16](UnsafeBufferPointer(start: $0, count: c.value!.count))
-      }.first!
-      logger.info("got \(ret)")
-      return ret
+    p.readValue(for: c)
+    sleep(1)
+    //debugPrint(c.value!.map { "\($0)" }.joined(separator: " "))
+    let ret = c.value!.withUnsafeBytes {
+      [UInt16](UnsafeBufferPointer(start: $0, count: c.value!.count))
+    }.first!
+    logger.info("got \(ret)")
+    return ret
   }
   
   func pair() -> Bool {
-    if let mug = delegate.mug,
-       let cr = delegate.pairingReadCharacteristic,
-       let cw = delegate.pairingWriteCharacteristic
+    if let peripheral = delegate.peripheral,
+       let cr = delegate.charsDiscovered[EmberCharUuids[EmberChars.Dsk]!],
+       let cw = delegate.charsDiscovered[EmberCharUuids[EmberChars.Udsk]!]
     {
-      mug.readValue(for: cr)
+      peripheral.readValue(for: cr)
       logger.info("sent pair read")
       sleep(2)
       let data = Data([0xBA, 0x37, 0x89, 0x40, 0x51, 0x0A, 0x13, 0x68, 0x85, 0xE8, 0xD7, 0x73, 0xA5, 0xE0, 0x3E, 0x1C, 0x3F, 0xF2, 0xF5, 0xFA])
-      mug.writeValue(data, for: cw, type: .withResponse)
+      peripheral.writeValue(data, for: cw, type: .withResponse)
+      logger.info("sent pair write")
       sleep(2)
       return true
-    } else {
-      logger.info("failed to pair")
-      return false
     }
+    logger.info("failed to pair")
+    return false
   }
   func isConnected() -> Bool {
     return delegate.connected
