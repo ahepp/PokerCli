@@ -48,35 +48,39 @@ extension Poke {
   struct Get: ParsableCommand {
     static var configuration = CommandConfiguration(abstract: "Get data from the Ember device.")
     @OptionGroup var opts: Options
-    @Argument(help: "Datum to operate on. \"target\", \"current\", or \"level\".")
+    @Argument(help: "Datum to operate on. \"target\", \"current\", \"level\", or \"rgb\".")
     var datum: String
     
     func validate() throws {
-      if (datum != "target") && (datum != "current") && (datum != "level") {
-        throw ValidationError("datum may be \"target\", \"current\", or \"level\"")
+      if (datum != "target") && (datum != "current") && (datum != "level") && (datum != "rgb") {
+        throw ValidationError("datum may be \"target\", \"current\", \"level\", or \"rgb\"")
       }
     }
     
     mutating func run() throws {
       let uuid = UUID(uuidString: opts.uuid)!
       let poker = getPoker(uuid: uuid)
-      var ret: UInt16?
       switch(datum) {
-        case "current":
-          ret = poker.getCurrentTemperature()
-        case "level":
-          ret = poker.getLiquidLevel()
-        default:
-          ret = poker.getTargetTemperature()
-      }
-      if let ret: UInt16 = ret {
-        // quick hack to normalize level (from /30 to /~100)
-        if datum == "level" {
-          print(ret * 33 / 10)
-        } else {
+      case "current":
+        if let ret = poker.getCurrentTemperature() {
           print(ret)
+          throw ExitCode.success
         }
-        throw ExitCode.success
+      case "level":
+        if let ret = poker.getLiquidLevel() {
+          print(ret)
+          throw ExitCode.success
+        }
+      case "rgb":
+        if let ret = poker.getRgb() {
+          print(String(format:"%08X", ret))
+          throw ExitCode.success
+        }
+      default: // "target"
+        if let ret = poker.getTargetTemperature() {
+          print(ret)
+          throw ExitCode.success
+        }
       }
       throw ExitCode.failure
     }
@@ -85,23 +89,36 @@ extension Poke {
   struct Set: ParsableCommand {
     static var configuration = CommandConfiguration(abstract: "Set data on the Ember device.")
     @OptionGroup var opts: Options
-    @Argument(help: "Datum to operate on. Only \"target\" is supported.")
+    @Argument(help: "Datum to operate on. \"target\" or \"rgb\".")
     var datum: String
-    @Argument(help: "Temperature, in celcius, times 100. That is, 5723 for 135f (57.23c).")
-    var temp: UInt16
-
+    @Argument(help: "Value to set datum to")
+    var arg: String
+    
     func validate() throws {
-      if (datum != "target") {
-        throw ValidationError("datum must be \"target\"")
+      if (datum != "target") && (datum != "rgb") {
+        throw ValidationError("datum may be \"target\" or \"rgb\"")
       }
     }
     
     mutating func run() throws {
       let uuid = UUID(uuidString: opts.uuid)!
       let poker = getPoker(uuid: uuid)
-      throw poker.setTargetTemperature(targetTemperature: temp) ?
-        ExitCode.success
-      : ExitCode.failure
+      switch datum {
+      case "rgb":
+        if let rgb = UInt32(arg, radix: 16) {
+          throw poker.setRgb(rgb: rgb) ?
+          ExitCode.success
+          : ExitCode.failure
+        }
+        throw ValidationError("rgb must be 4 byte hex value")
+      default: // "target"
+        if let temp = UInt16(arg) {
+          throw poker.setTargetTemperature(targetTemperature: temp) ?
+          ExitCode.success
+          : ExitCode.failure
+        }
+        throw ValidationError("temperature must be UInt16")
+      }
     }
   }
 }

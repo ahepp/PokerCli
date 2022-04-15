@@ -113,7 +113,7 @@ class Poker {
     let peripheral = delegate.peripheral!
     let char = delegate.charsDiscovered[EmberCharUuids[EmberChars.TargetTemperature]!]
     if char == nil {
-      logger.info("set temperature failed, delegate has not discovered target temperature characteristic")
+      logger.info("set temperature failed, delegate has not discovered characteristic")
       return false
     }
     
@@ -133,7 +133,7 @@ class Poker {
       logger.info("getting target temperature")
       return getUInt16(p: peripheral, c: char)
     }
-    logger.info("get target temperature failed, delegate has not discovered target temperature characteristic")
+    logger.info("get target temperature failed, delegate has not discovered characteristic")
     return nil
   }
   
@@ -144,11 +144,11 @@ class Poker {
       logger.info("getting drink temperature")
       return getUInt16(p: peripheral, c: char)
     }
-    logger.info("get drink temperature failed, delegate has not discovered drink temperature characteristic")
+    logger.info("get drink temperature failed, delegate has not discovered characteristic")
     return nil
   }
   
-  func getLiquidLevel() -> UInt16? {
+  func getLiquidLevel() -> UInt8? {
     guard delegate.connected else {return nil}
     let peripheral = delegate.peripheral!
     if let char = delegate.charsDiscovered[EmberCharUuids[EmberChars.LiquidLevel]!] {
@@ -156,6 +156,35 @@ class Poker {
       return getUInt8(p: peripheral, c: char)
     }
     logger.info("get liquid level failed, delegate has not discovered characteristic")
+    return nil
+  }
+  
+  func setRgb(rgb: UInt32) -> Bool {
+    guard delegate.connected else {return false}
+    let peripheral = delegate.peripheral!
+    let char = delegate.charsDiscovered[EmberCharUuids[EmberChars.Rgb]!]
+    if char == nil {
+      logger.info("set rgb failed, delegate has not discovered characteristic")
+      return false
+    }
+    
+    logger.info("setting rgb")
+    var tmp = rgb
+    let data = Data(bytes: &tmp, count: MemoryLayout<UInt32>.size)
+    peripheral.writeValue(data, for: char!, type: .withResponse)
+    sleep(1)
+    logger.info("set \(rgb)")
+    return true
+  }
+  
+  func getRgb() -> UInt32? {
+    guard delegate.connected else {return nil}
+    let peripheral = delegate.peripheral!
+    if let char = delegate.charsDiscovered[EmberCharUuids[EmberChars.Rgb]!] {
+      logger.info("getting rgb")
+      return getUInt32(p: peripheral, c: char)
+    }
+    logger.info("get rgb failed, delegate has not discovered characteristic")
     return nil
   }
   
@@ -180,10 +209,19 @@ class Poker {
     return delegate.connected
   }
   
+  private func getUInt32(p: CBPeripheral, c: CBCharacteristic) -> UInt32 {
+    p.readValue(for: c)
+    sleep(1)
+    let ret = c.value!.withUnsafeBytes {
+      [UInt32](UnsafeBufferPointer(start: $0, count: c.value!.count))
+    }.first!
+    logger.info("got \(ret)")
+    return ret
+  }
+  
   private func getUInt16(p: CBPeripheral, c: CBCharacteristic) -> UInt16 {
     p.readValue(for: c)
     sleep(1)
-    //debugPrint(c.value!.map { "\($0)" }.joined(separator: " "))
     let ret = c.value!.withUnsafeBytes {
       [UInt16](UnsafeBufferPointer(start: $0, count: c.value!.count))
     }.first!
@@ -191,10 +229,10 @@ class Poker {
     return ret
   }
   
-  private func getUInt8(p: CBPeripheral, c: CBCharacteristic) -> UInt16 {
+  private func getUInt8(p: CBPeripheral, c: CBCharacteristic) -> UInt8 {
     p.readValue(for: c)
     sleep(1)
-    let ret = UInt16(c.value!.first!)
+    let ret = c.value!.first!
     logger.info("got \(ret)")
     return ret
   }
