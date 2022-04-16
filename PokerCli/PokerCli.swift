@@ -73,7 +73,7 @@ extension Poke {
         }
       case "rgb":
         if let ret = poker.getRgb() {
-          print(String(format:"%08X", ret))
+          print(String(format:"%06X", ret.bigEndian >> 8))
           throw ExitCode.success
         }
       default: // "target"
@@ -106,7 +106,7 @@ extension Poke {
       switch datum {
       case "rgb":
         if let rgb = UInt32(arg, radix: 16) {
-          throw poker.setRgb(rgb: rgb) ?
+          throw poker.setRgb(rgb: rgb.bigEndian >> 8) ?
           ExitCode.success
           : ExitCode.failure
         }
