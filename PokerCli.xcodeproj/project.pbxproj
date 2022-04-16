@@ -25,7 +25,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		87AA8568280795E9004FABC5 /* PokerCli */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PokerCli; sourceTree = BUILT_PRODUCTS_DIR; };
+		87AA8568280795E9004FABC5 /* poker */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = poker; sourceTree = BUILT_PRODUCTS_DIR; };
 		87AA856B280795E9004FABC5 /* PokerCli.swift */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.swift; path = PokerCli.swift; sourceTree = "<group>"; tabWidth = 2; };
 		87AA8572280795FD004FABC5 /* Poker.swift */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.swift; path = Poker.swift; sourceTree = "<group>"; tabWidth = 2; };
 /* End PBXFileReference section */
@@ -53,7 +53,7 @@
 		87AA8569280795E9004FABC5 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				87AA8568280795E9004FABC5 /* PokerCli */,
+				87AA8568280795E9004FABC5 /* poker */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,9 +70,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		87AA8567280795E9004FABC5 /* PokerCli */ = {
+		87AA8567280795E9004FABC5 /* poker */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 87AA856F280795E9004FABC5 /* Build configuration list for PBXNativeTarget "PokerCli" */;
+			buildConfigurationList = 87AA856F280795E9004FABC5 /* Build configuration list for PBXNativeTarget "poker" */;
 			buildPhases = (
 				87AA8564280795E9004FABC5 /* Sources */,
 				87AA8565280795E9004FABC5 /* Frameworks */,
@@ -82,12 +82,12 @@
 			);
 			dependencies = (
 			);
-			name = PokerCli;
+			name = poker;
 			packageProductDependencies = (
 				87C09D252807E90100BAA1E6 /* ArgumentParser */,
 			);
 			productName = PokerCli;
-			productReference = 87AA8568280795E9004FABC5 /* PokerCli */;
+			productReference = 87AA8568280795E9004FABC5 /* poker */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -121,7 +121,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				87AA8567280795E9004FABC5 /* PokerCli */,
+				87AA8567280795E9004FABC5 /* poker */,
 			);
 		};
 /* End PBXProject section */
@@ -286,7 +286,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		87AA856F280795E9004FABC5 /* Build configuration list for PBXNativeTarget "PokerCli" */ = {
+		87AA856F280795E9004FABC5 /* Build configuration list for PBXNativeTarget "poker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				87AA8570280795E9004FABC5 /* Debug */,
